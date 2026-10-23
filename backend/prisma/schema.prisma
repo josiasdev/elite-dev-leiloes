@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  AUCTIONEER
+  BIDDER
+}
+
+enum LotStatus {
+  SCHEDULED
+  ACTIVE
+  CLOSED
+  CANCELLED
+}
+
+enum TransactionType {
+  DEPOSIT
+  LOT_DEBIT
+  LOT_CREDIT
+  REFUND
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         Role
+  alias        String   @unique
+  balance      Decimal  @default(0) @db.Decimal(12, 2)
+  createdAt    DateTime @default(now())
+
+  lots         Lot[]
+  bids         Bid[]
+  transactions WalletTransaction[]
+  wonReceipts  Receipt[]           @relation("winner")
+  soldReceipts Receipt[]           @relation("seller")
+}
+
+model Lot {
+  id          String    @id @default(uuid())
+  sellerId    String
+  seller      User      @relation(fields: [sellerId], references: [id])
+  status      LotStatus @default(SCHEDULED)
+  title       String
+  description String?
+  artist      String?
+  year        String?
+  medium      String?
+  dimensions  String?
+  imageUrl    String
+  sourceUrl   String?
+  externalId  String?
+  sourceName  String    @default("cleveland")
+  startPrice  Decimal   @db.Decimal(12, 2)
+  increment   Decimal   @db.Decimal(12, 2)
+  startsAt    DateTime
+  endsAt      DateTime
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  bids    Bid[]
+  receipt Receipt?
+
+  @@index([status, endsAt])
+  @@index([sellerId])
+}
+
+model Bid {
+  id        String   @id @default(uuid())
+  lotId     String
+  lot       Lot      @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  bidderId  String
+  bidder    User     @relation(fields: [bidderId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  seq       Int
+  prevHash  String?
+  hash      String
+  createdAt DateTime @default(now())
+
+  @@unique([lotId, seq])
+  @@index([lotId, createdAt])
+}
+
+model WalletTransaction {
+  id        String          @id @default(uuid())
+  userId    String
+  user      User            @relation(fields: [userId], references: [id])
+  type      TransactionType
+  amount    Decimal         @db.Decimal(12, 2)
+  lotId     String?
+  note      String?
+  createdAt DateTime        @default(now())
+
+  @@index([userId, createdAt])
+}
+
+model Receipt {
+  id        String   @id @default(uuid())
+  lotId     String   @unique
+  lot       Lot      @relation(fields: [lotId], references: [id])
+  winnerId  String
+  winner    User     @relation("winner", fields: [winnerId], references: [id])
+  sellerId  String
+  seller    User     @relation("seller", fields: [sellerId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  token     String   @unique
+  createdAt DateTime @default(now())
+}

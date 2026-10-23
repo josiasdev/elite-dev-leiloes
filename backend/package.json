@@ -1,28 +1,36 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "postinstall": "prisma skills sync || exit 0"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "private": true,
+  "description": "API da Casa de Leilões - teste técnico Elite Dev (Verzel)",
   "type": "commonjs",
+  "scripts": {
+    "postinstall": "prisma generate || exit 0",
+    "dev": "tsx watch src/server.ts",
+    "start": "tsx src/server.ts",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
+    "seed": "tsx prisma/seed.ts",
+    "test": "echo \"Os testes automatizados entram na evolução do projeto\" && exit 1"
+  },
   "dependencies": {
+    "@prisma/adapter-pg": "7.10.1",
+    "@prisma/client": "7.10.1",
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^18.0.9",
     "express": "^5.3.0",
-    "pg": "^8.23.1"
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.5",
-    "nodemon": "^3.1.14",
-    "prisma": "^8.0.0-rc.27",
-    "ts-node": "^10.9.2",
+    "prisma": "7.10.1",
+    "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   }
 }
